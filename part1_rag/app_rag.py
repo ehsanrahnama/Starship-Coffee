@@ -1,9 +1,11 @@
 import os
 import json
 import numpy as np
+import sqlite3
 import streamlit as st
 from huggingface_hub import InferenceClient
 from sentence_transformers import SentenceTransformer
+from qdrant_client import QdrantClient
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -52,7 +54,40 @@ def build_json(docs, model):
         })
     json.dump(store, open(path, "w"))
     return store
-    
+
+
+def build_sqlite(docs, model):
+    path = f"{STORE_DIR}/vectors.sqlite"
+    conn = sqlite3.connect(path)
+    c = conn.cursor()
+    c.execute("CREATE TABLE IF NOT EXISTS docs (id TEXT, text TEXT, emb TEXT)")
+    if c.execute("SELECT COUNT(*) FROM docs").fetchone()[0] == 0:
+        for d in docs:
+            emb = json.dumps(model.encode(d["text"]).tolist())
+            c.execute("INSERT INTO docs VALUES (?, ?, ?)", (d["id"], d["text"], emb))
+        conn.commit()
+    rows = c.execute("SELECT * FROM docs").fetchall()
+    return [{"id": r[0], "text": r[1], "emb": json.loads(r[2])} for r in rows]
+
+
+
+def build_qdrant(docs, model):
+    client = QdrantClient("localhost", port=6333)
+    client.recreate_collection(
+        collection_name="docs",
+        vectors_config={"size": 384, "distance": "Cosine"}
+    )
+    for i, d in enumerate(docs):
+        client.upsert(
+            collection_name="docs",
+            points=[{
+                "id": i,
+                "vector": model.encode(d["text"]).tolist(),
+                "payload": d
+            }]
+        )
+    return client
+
 
 
 def retrieve(store, q, model, k, backend):
@@ -98,11 +133,9 @@ model = embedder()
 if backend == "json":
     store = build_json(docs, model)
 elif backend == "sqlite":
-    pass
-    # store = build_sqlite(docs, model)
+    store = build_sqlite(docs, model)
 else:
-    pass
-    # store = build_qdrant(docs, model)
+    store = build_qdrant(docs, model)
 
 if question:
     if is_injection(question):
