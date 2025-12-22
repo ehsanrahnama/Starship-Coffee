@@ -1,0 +1,8 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - ${PWD}/rag_store/qdrant_storage:/qdrant/storage
