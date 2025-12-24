@@ -169,13 +169,19 @@ pip install -r requirements.txt
 
 ### Running the Apps
 
-**Note:** before starting Task1, please pull qdrant service with below command
+**Note:** before starting Task1, please pull qdrant service with below command. You should have docker and docker compose on your machine to get and run  service
 
 ```bash
 
 docker compose pull
 
 ```
+Run manually qdrant service
+
+```bash
+docker compose up -d 
+```
+
 
 ```bash
 # Task 1 - RAG with Citations
