@@ -1,5 +1,7 @@
 import os
 import json
+import subprocess
+import time
 import numpy as np
 import sqlite3
 import streamlit as st
@@ -15,7 +17,7 @@ HF_TOKEN = os.getenv("HF_API_TOKEN")
 DATA_DIR = "part1_rag/docs"
 STORE_DIR = "rag_store"
 EMBED_MODEL = "all-MiniLM-L6-v2"
-# HF_MODEL = "HuggingFaceH4/zephyr-7b-beta"
+# HF_MODEL = "HuggingFaceH4/zephyr-7b-beta:featherless-ai"
 HF_MODEL = "Qwen/Qwen2.5-1.5B-Instruct:featherless-ai"
 
 
@@ -71,7 +73,22 @@ def build_sqlite(docs, model):
 
 
 
+def run_qdrant():
+    # Check if qdrant container is running
+    result = subprocess.run(
+        ["docker", "ps", "--filter", "name=qdrant", "--filter", "status=running", "--format", "{{.ID}}"],
+        capture_output=True,
+        text=True
+    )
+    if result.stdout.strip():
+        return
+
+    subprocess.run(["docker", "compose", "up", "-d", "qdrant"], check=True)
+
+
 def build_qdrant(docs, model):
+    run_qdrant()
+    time.sleep(5)
     client = QdrantClient("localhost", port=6333)
     client.recreate_collection(
         collection_name="docs",
