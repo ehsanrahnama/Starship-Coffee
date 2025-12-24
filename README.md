@@ -169,6 +169,14 @@ pip install -r requirements.txt
 
 ### Running the Apps
 
+**Note:** before starting Task1, please pull qdrant service with below command
+
+```bash
+
+docker compose pull
+
+```
+
 ```bash
 # Task 1 - RAG with Citations
 streamlit run part1_rag/app_rag.py
