@@ -167,6 +167,9 @@ pip install -r requirements.txt
    OPENAI_API_KEY=your_key_here
    ```
 
+*I used huggingface api token. please set your hugging face api token for this environment variable*
+
+
 ### Running the Apps
 
 **Note:** before starting Task1, please pull qdrant service with below command. You should have docker and docker compose on your machine to get and run  service

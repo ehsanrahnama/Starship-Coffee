@@ -12,7 +12,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-HF_TOKEN = os.getenv("HF_API_TOKEN")
+# please use hugging face api token
+HF_TOKEN = os.getenv("OPENAI_API_KEY") # Hugging Face API Token
 
 DATA_DIR = "part1_rag/docs"
 STORE_DIR = "rag_store"

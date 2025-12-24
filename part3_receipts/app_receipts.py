@@ -11,12 +11,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-client = OpenAI(
-    base_url="https://router.huggingface.co/v1",
-    api_key=os.environ["HF_API_TOKEN"],
-)
-
-
 st.title("Task 3 — Receipt OCR (Vision Model)")
 
 file = st.file_uploader("Upload receipt (PNG/JPG)", type=["png", "jpg", "jpeg"])
@@ -31,7 +25,7 @@ def call_vision_model(file_img):
 
     client = OpenAI(
     base_url="https://router.huggingface.co/v1",
-    api_key=os.environ["HF_API_TOKEN"],
+    api_key=os.environ["OPENAI_API_KEY"],
 )
 
 

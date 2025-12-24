@@ -10,7 +10,7 @@ from huggingface_hub import InferenceClient
 
 load_dotenv()
 
-HF_TOKEN = os.getenv("HF_API_TOKEN")
+HF_TOKEN = os.getenv("OPENAI_API_KEY") # Hugging Face API Token
 
 # HF_MODEL = "HuggingFaceH4/zephyr-7b-beta:featherless-ai"
 HF_MODEL = "Qwen/Qwen2.5-1.5B-Instruct:featherless-ai"
