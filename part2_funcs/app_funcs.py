@@ -3,15 +3,17 @@ import json
 import re
 import pandas as pd
 import streamlit as st
+from openai import OpenAI
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
+
 
 load_dotenv()
 
 HF_TOKEN = os.getenv("HF_API_TOKEN")
 
-# HF_MODEL = "HuggingFaceH4/zephyr-7b-beta"
-HF_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
+# HF_MODEL = "HuggingFaceH4/zephyr-7b-beta:featherless-ai"
+HF_MODEL = "Qwen/Qwen2.5-1.5B-Instruct:featherless-ai"
 
 
 customers = pd.read_csv("part2_funcs/data/customers.csv")
@@ -64,6 +66,7 @@ def spend_in_period(customer_id, start, end):
     return {"total_spend": float(df.total.sum())}
 
 
+### Test Logic 
 # print(spend_in_period("C-101", "2025-09-01", "2025-09-30"))
 # print(refund_order("B77", 5.40))
 # print(get_order("c9"))
@@ -112,18 +115,20 @@ def llm_route(question):
     user_message = f"User Request: {question}\nOutput JSON:"
 
     try:
-        client = InferenceClient(api_key=HF_TOKEN)
+
+        client = OpenAI(base_url="https://router.huggingface.co/v1",
+                    api_key=HF_TOKEN)
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message}
         ]
-        response = client.chat_completion(
-            messages=messages,
+
+
+        response = client.chat.completions.create(
             model=HF_MODEL,
-            max_tokens=200,
-            temperature=0.01,
-            stop=["\n\n", "User:"]
-        )
+            messages=messages,
+            temperature=0.01
+            )
 
         text = ""
         # Extract text from response
@@ -154,11 +159,11 @@ if "q" not in st.session_state:
 left, right = st.columns(2)
 
 with left:
-    if st.button("Preset 1"):
+    if st.button("Total Spend in Period 1"):
         st.session_state.q = "Total spend for customer C-101 from 2025-09-01 to 2025-09-30."
-    if st.button("Preset 2"):
+    if st.button("Refund Order 2"):
         st.session_state.q = "Refund 5.40 credits for order B77."
-    if st.button("Preset 3"):
+    if st.button("Get Order Info 3"):
         st.session_state.q = "What is the status and masked email for order c9?"
 
     question = st.text_area("Question", st.session_state.q)
