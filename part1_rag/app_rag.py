@@ -3,7 +3,7 @@ import json
 import numpy as np
 import sqlite3
 import streamlit as st
-from huggingface_hub import InferenceClient
+from openai import OpenAI
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from dotenv import load_dotenv
@@ -16,7 +16,7 @@ DATA_DIR = "part1_rag/docs"
 STORE_DIR = "rag_store"
 EMBED_MODEL = "all-MiniLM-L6-v2"
 # HF_MODEL = "HuggingFaceH4/zephyr-7b-beta"
-HF_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
+HF_MODEL = "Qwen/Qwen2.5-1.5B-Instruct:featherless-ai"
 
 
 os.makedirs(STORE_DIR, exist_ok=True)
@@ -105,14 +105,18 @@ def retrieve(store, q, model, k, backend):
     return scored[:k]
 
 def call_llm(context, question):
+
     messages = [
         {"role": "system", "content": "Use ONLY the context to answer. Max 100 words."},
         {"role": "user", "content": f"Context:\n{context}\n\nQuestion:\n{question}"}
     ]
-    client = InferenceClient(api_key=HF_TOKEN)
-    response = client.chat_completion(
-        messages,
+
+    client = OpenAI(base_url="https://router.huggingface.co/v1",
+                    api_key=HF_TOKEN)
+
+    response = client.chat.completions.create(
         model=HF_MODEL,
+        messages=messages,
         max_tokens=200
     )
     
@@ -145,7 +149,7 @@ if question:
         context = "\n\n".join(h[1]["text"] for h in hits)
 
         answer = call_llm(context, question)
-        citations = list({h[1]["id"] for h in hits})
+        citations = [h[1]["id"] for h in hits]
 
         st.subheader("Answer")
         st.write(answer)
@@ -155,7 +159,7 @@ if question:
 
         with st.expander("Debug"):
             for score, d in hits:
-                st.write(f"**{d['id']}**")
+                st.write(f"**{d['id']}** \t\t *scored={score:.2f}*")
                 st.write(d["text"][:200] + "...")
 
         print(json.dumps({
